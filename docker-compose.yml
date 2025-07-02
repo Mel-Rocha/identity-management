@@ -15,6 +15,43 @@ services:
       - .env
     networks:
       - rpa_network
+    depends_on:
+      - redis  # Django depende do Redis para o Celery
+
+  redis:
+    image: redis:latest
+    container_name: rpa_redis
+    networks:
+      - rpa_network
+
+  celery:
+    container_name: rpa_celery
+    build: .
+    command: celery -A config.celery worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis  # Celery depende do Redis
+      - django  # Certifique-se de que o Django está rodando
+    env_file:
+      - .env
+    networks:
+      - rpa_network
+
+
+  celery-beat:
+    container_name: rpa_celery_beat
+    build: .
+    command: celery -A config.celery beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis  # Celery Beat também depende do Redis
+      - django  # Certifique-se de que o Django está rodando
+    env_file:
+      - .env
+    networks:
+      - rpa_network
 
 networks:
   rpa_network:

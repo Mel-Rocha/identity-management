@@ -24,24 +24,24 @@ CORS_ALLOW_ALL_ORIGINS = config("CORS_ALLOW_ALL_ORIGINS", cast=bool, default=Tru
 
 # CELERY CONFIGURATION
 # Redis
-# REDIS_HOST = config('REDIS_HOST')
-# REDIS_PORT = config('REDIS_PORT')
-# REDIS_DB = config('REDIS_DB')
-#
-# # BEAT
-# CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
-#
-#
-# # Celery
-# CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
-# CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
-#
-# CELERY_ACCEPT_CONTENT = ["json"]
-# CELERY_TASK_SERIALIZER = "json"
-# CELERY_RESULT_SERIALIZER = "json"
-# CELERY_TIMEZONE = "America/Sao_Paulo"
+REDIS_HOST = config('REDIS_HOST')
+REDIS_PORT = config('REDIS_PORT')
+REDIS_DB = config('REDIS_DB')
 
-# Registre as filas
+# BEAT
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
+
+
+# Celery
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "America/Sao_Paulo"
+
+# # Registre as filas
 # CELERY_TASK_QUEUES = {
 #     'default': {
 #         'exchange': 'default',
@@ -52,8 +52,8 @@ CORS_ALLOW_ALL_ORIGINS = config("CORS_ALLOW_ALL_ORIGINS", cast=bool, default=Tru
 #         'routing_key': 'queue_task_core',
 #     },
 # }
-
-# Registre as tasks
+#
+# # Registre as tasks
 # CELERY_TASK_ROUTES = {
 #     "apps.core.tasks.task_core": {
 #         "queue": "queue_task_core"
