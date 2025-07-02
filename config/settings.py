@@ -41,24 +41,32 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "America/Sao_Paulo"
 
-# # Registre as filas
-# CELERY_TASK_QUEUES = {
-#     'default': {
-#         'exchange': 'default',
-#         'routing_key': 'default',
-#     },
-#     'queue_request_api_client': {
-#         'exchange': 'queue_task_core',
-#         'routing_key': 'queue_task_core',
-#     },
-# }
-#
-# # Registre as tasks
-# CELERY_TASK_ROUTES = {
-#     "apps.core.tasks.task_core": {
-#         "queue": "queue_task_core"
-#     },
-# }
+# Registre as filas
+CELERY_TASK_QUEUES = {
+    'default': {
+        'exchange': 'default',
+        'routing_key': 'default',
+    },
+    'queue_request_api_client': {
+        'exchange': 'task_send_password_reset_email',
+        'routing_key': 'task_send_password_reset_email',
+    },
+}
+
+# Registre as tasks
+CELERY_TASK_ROUTES = {
+    "apps.users.tasks.task_send_password_reset_email": {
+        "queue": "queue_send_password_reset_email"
+    },
+}
+
+# Email
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 LOCAL_APPS = [

@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.users.permissions import IsStaffOrAdmin
 from apps.users.serializers import (
     UserCreateSerializer,
     UserLoginSerializer,
@@ -21,15 +22,7 @@ from apps.users.serializers import (
     UserActivateSerializer
 )
 from apps.users.models import User
-
-
-class IsStaffOrAdmin(permissions.BasePermission):
-    """
-    Custom permission to only allow staff or admin users to access the view.
-    """
-
-    def has_permission(self, request, view):
-        return request.user.is_staff or request.user.is_superuser
+from apps.users.tasks import task_send_password_reset_email
 
 
 class ListUsers(ListAPIView):
@@ -174,7 +167,7 @@ class InactivateUser(APIView):
             user.is_active = False
             user.save()
             return Response(
-                {'message': 'User sucessfully inactivated!'}, status=status.HTTP_204_NO_CONTENT)
+                {'message': 'Usuário inativado!'}, status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -197,7 +190,7 @@ class ActivateUser(APIView):
             user.is_active = True
             user.save()
             return Response(
-                {'message': 'User sucessfully activated!'}, status=status.HTTP_200_OK)
+                {'message': 'Usuário ativado!'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -225,7 +218,7 @@ class RecoverPassword(APIView):
         try:
             user = User.objects.get(email=email)
             new_password = user.reset_password()
-            #task_send_password_reset_email.delay(user.id, new_password)
+            task_send_password_reset_email.delay(user.id, new_password)
         except User.DoesNotExist:
             # Silenciar esse erro evita exploração por enumeration
             pass
@@ -240,6 +233,6 @@ class RecoverPassword(APIView):
             )
 
         return Response(
-            {"message": "Se o e-mail estiver registrado, você receberá instruções."},
+            {"message": "Caso o email esteja registrado, as instruções foram enviadas."},
             status=status.HTTP_200_OK,
         )

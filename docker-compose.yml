@@ -27,7 +27,7 @@ services:
   celery:
     container_name: rpa_celery
     build: .
-    command: celery -A config.celery worker --loglevel=info
+    command: celery -A config.celery worker --loglevel=info -Q default,queue_send_password_reset_email
     volumes:
       - .:/app
     depends_on:

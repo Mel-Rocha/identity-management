@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from celery.result import AsyncResult
 
-from apps.users.views import IsStaffOrAdmin
+from apps.users.permissions import IsStaffOrAdmin
 
 
 class TaskResultView(APIView):
@@ -13,11 +13,14 @@ class TaskResultView(APIView):
     def get(self, request, task_id, *args, **kwargs):
         try:
             task_result = AsyncResult(task_id)
+            result = task_result.result
 
             return Response({
                 "task_id": task_id,
                 "status": task_result.status,
-                "result": task_result.result
+                "result": str(result) if isinstance(result, Exception) else result  # Garante que o
+                # resultado da task seja sempre serializável para o DRF
+
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
