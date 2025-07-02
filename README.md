@@ -50,9 +50,27 @@ python manage.py runserver
 ```
 - Acesse a aplicação em `http://0.0.0.0:8000/`
 ---
-## Qualidade de código 💎
+## Qualidade de código 🔍
+### Testes e estilo
 Execute o seguinte comando para mensurar a qualidade do código, incluindo testes e verificação de estilo PEP8:
 ```bash
 ./dev_helpers/scripts/validate_quality.sh
 ```
+---
+### Testes unitários 🧪
+Rode os testes do projeto
+````bash
+coverage run -m pytest
+````
+Geração de relatório de corbertura de testes.
+````bash
+coverage report -m
+````
 
+---
+### Estilo PEP8 💎
+Execute o linter do projeto
+````bash
+make lint
+````
+---
