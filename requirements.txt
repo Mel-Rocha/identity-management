@@ -22,7 +22,7 @@ cyclonedx-python-lib==9.1.0
 defusedxml==0.7.1
 dill==0.4.0
 dj-config-url==0.1.1
-Django==5.1.7
+Django==5.1.10
 django-celery-beat==2.7.0
 django-celery-results==2.5.1
 django-cors-headers==4.7.0
@@ -35,7 +35,7 @@ et_xmlfile==2.0.0
 exceptiongroup==1.2.2
 filelock==3.18.0
 gunicorn==23.0.0
-h11==0.14.0
+h11==0.16.0
 idna==3.10
 inflection==0.5.1
 iniconfig==2.1.0
@@ -76,7 +76,7 @@ python-dotenv==1.0.1
 pytz==2025.1
 PyYAML==6.0.2
 redis==5.2.1
-requests==2.32.3
+requests==2.32.4
 rest-framework-simplejwt==0.0.2
 rich==14.0.0
 selenium==4.23.1
@@ -92,7 +92,7 @@ trio-websocket==0.12.2
 typing_extensions==4.12.2
 tzdata==2025.1
 uritemplate==4.1.1
-urllib3==2.3.0
+urllib3==2.5.0
 vine==5.1.0
 wcwidth==0.2.13
 webdriver-manager==4.0.2
