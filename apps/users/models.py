@@ -28,7 +28,7 @@ class User(AbstractUser):
         default=False, verbose_name='Administrador')
     # medium access users - can update or delete  | if not super and not staff
     # is common_user
-    is_staff = models.BooleanField(default=False, verbose_name='Super Usuário')
+    is_staff = models.BooleanField(default=False, verbose_name='Equipe')
 
     groups = models.ManyToManyField(
         Group,

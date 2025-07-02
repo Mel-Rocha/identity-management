@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
+from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.core.logs import logger
+from apps.users.permissions import IsStaffOrAdmin
 from apps.users.serializers import (
     UserCreateSerializer,
     UserLoginSerializer,
@@ -21,15 +23,7 @@ from apps.users.serializers import (
     UserActivateSerializer
 )
 from apps.users.models import User
-
-
-class IsStaffOrAdmin(permissions.BasePermission):
-    """
-    Custom permission to only allow staff or admin users to access the view.
-    """
-
-    def has_permission(self, request, view):
-        return request.user.is_staff or request.user.is_superuser
+from apps.users.tasks import task_send_password_reset_email
 
 
 class ListUsers(ListAPIView):
@@ -225,21 +219,20 @@ class RecoverPassword(APIView):
         try:
             user = User.objects.get(email=email)
             new_password = user.reset_password()
-            #task_send_password_reset_email.delay(user.id, new_password)
+            task_send_password_reset_email.delay(user.id, new_password)
         except User.DoesNotExist:
             # Silenciar esse erro evita exploração por enumeration
             pass
         except Exception as e:
-            tb = traceback.format_exc()  # Captura o traceback completo
+            # Registra o erro com traceback completo, sem expor ao usuário
+            logger.error("Erro ao tentar recuperar senha para %s: %s\n%s", email, e, traceback.format_exc())
+
             return Response(
-                {
-                    "error": f"Erro interno: {e}",
-                    "traceback": tb  # Inclui o traceback na resposta (opcional)
-                },
+                {"error": "Erro interno ao processar a solicitação."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(
-            {"message": "Se o e-mail estiver registrado, você receberá instruções."},
+            {"message": "Caso o email esteja registrado, as instruções foram enviadas."},
             status=status.HTTP_200_OK,
         )

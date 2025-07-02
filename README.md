@@ -1,6 +1,6 @@
-## Rodando o projeto
+# Configuração Primária 1️⃣
 
-### Configuração Primária ⚙️
+## Preparando o ambiente ⚙️
 1 - Clone o repositório do projeto:
 ```bash
 mkdir django-project
@@ -27,9 +27,16 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 ```
----
 
-### Rodar o projeto através do Docker 🐳
+## Scripts Automatizados 🛠️
+Defina permissão de execução para os scripts de ajuda no diretório `dev_helpers/scripts/`:
+```bash
+chmod +x dev_helpers/scripts/*
+```
+---
+## Rodando o Projeto 🛞
+
+### Docker 🐳
 ```bash
 docker compose docker-compose.yml up --build
 ```
@@ -37,11 +44,33 @@ docker compose docker-compose.yml up --build
 
 ---
 
-### Rodar o projeto localmente 🏡
+### localmente 🏡
 ```bash
 python manage.py runserver
 ```
 - Acesse a aplicação em `http://0.0.0.0:8000/`
 ---
+## Qualidade de código 🔍
+### Testes e estilo
+Execute o seguinte comando para mensurar a qualidade do código, incluindo testes e verificação de estilo PEP8:
+```bash
+./dev_helpers/scripts/validate_quality.sh
+```
+---
+### Testes unitários 🧪
+Rode os testes do projeto
+````bash
+coverage run -m pytest
+````
+Geração de relatório de corbertura de testes.
+````bash
+coverage report -m
+````
 
-
+---
+### Estilo PEP8 💎
+Execute o linter do projeto
+````bash
+make lint
+````
+---
