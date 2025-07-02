@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.core.logs import logger
 from apps.users.permissions import IsStaffOrAdmin
 from apps.users.serializers import (
     UserCreateSerializer,
@@ -223,12 +224,11 @@ class RecoverPassword(APIView):
             # Silenciar esse erro evita exploração por enumeration
             pass
         except Exception as e:
-            tb = traceback.format_exc()  # Captura o traceback completo
+            # Registra o erro com traceback completo, sem expor ao usuário
+            logger.error("Erro ao tentar recuperar senha para %s: %s\n%s", email, e, traceback.format_exc())
+
             return Response(
-                {
-                    "error": f"Erro interno: {e}",
-                    "traceback": tb  # Inclui o traceback na resposta (opcional)
-                },
+                {"error": "Erro interno ao processar a solicitação."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
