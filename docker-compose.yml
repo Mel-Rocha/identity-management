@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  django:
+    container_name: rpa_django
+    build: .
+    entrypoint: sh ./docker-entrypoint.sh
+    volumes:
+      - .:/app
+    expose:
+      - 8000
+    ports:
+        - "8000:8000"  # Mapeia a porta 8000 do container para a porta 8000 do host
+    env_file:
+      - .env
+    networks:
+      - rpa_network
+
+networks:
+  rpa_network:
+    driver: bridge
