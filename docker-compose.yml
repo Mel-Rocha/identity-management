@@ -2,7 +2,7 @@ version: '3'
 
 services:
   django:
-    container_name: rpa_django
+    container_name: base_django
     build: .
     entrypoint: sh ./docker-entrypoint.sh
     volumes:
@@ -14,18 +14,18 @@ services:
     env_file:
       - .env
     networks:
-      - rpa_network
+      - base_network
     depends_on:
       - redis  # Django depende do Redis para o Celery
 
   redis:
     image: redis:latest
-    container_name: rpa_redis
+    container_name: base_redis
     networks:
-      - rpa_network
+      - base_network
 
   celery:
-    container_name: rpa_celery
+    container_name: base_celery
     build: .
     command: celery -A config.celery worker --loglevel=info -Q default,queue_send_password_reset_email
     volumes:
@@ -36,11 +36,11 @@ services:
     env_file:
       - .env
     networks:
-      - rpa_network
+      - base_network
 
 
   celery-beat:
-    container_name: rpa_celery_beat
+    container_name: base_celery_beat
     build: .
     command: celery -A config.celery beat --loglevel=info
     volumes:
@@ -51,8 +51,8 @@ services:
     env_file:
       - .env
     networks:
-      - rpa_network
+      - base_network
 
 networks:
-  rpa_network:
+  base_network:
     driver: bridge

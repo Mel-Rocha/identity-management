@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
+from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -168,7 +168,7 @@ class InactivateUser(APIView):
             user.is_active = False
             user.save()
             return Response(
-                {'message': 'Usuário inativado!'}, status=status.HTTP_204_NO_CONTENT)
+                {'message': 'User sucessfully inactivated!'}, status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -191,7 +191,7 @@ class ActivateUser(APIView):
             user.is_active = True
             user.save()
             return Response(
-                {'message': 'Usuário ativado!'}, status=status.HTTP_200_OK)
+                {'message': 'User sucessfully activated!'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

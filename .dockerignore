@@ -16,7 +16,6 @@ shared_tmp
 celerybeat*
 db*
 Dockerfile
-Dockerfile.selenium
 
 
 # Unit test / coverage reports
