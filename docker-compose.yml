@@ -13,6 +13,8 @@ services:
         - "8000:8000"  # Mapeia a porta 8000 do container para a porta 8000 do host
     env_file:
       - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
     networks:
       - base_network
     depends_on:
