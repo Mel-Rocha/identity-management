@@ -132,3 +132,13 @@ class UserActivateSerializer(serializers.ModelSerializer):
         # Adiciona o usuário validado aos atributos
         attrs['user'] = user
         return attrs
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(help_text="Token de refresh a ser invalidado.")

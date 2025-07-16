@@ -1,7 +1,7 @@
 from django.urls import path
 
 from apps.users.views import (LoginView, ListUsers, SignUpView,
-                              RecoverPassword, UpdateUser, InactivateUser, ActivateUser)
+                              RecoverPassword, UpdateUser, InactivateUser, ActivateUser, LogoutView, MeView)
 
 urlpatterns = [
     path(
@@ -32,4 +32,7 @@ urlpatterns = [
         'user-activate-service/<str:id>/',
         ActivateUser.as_view(),
         name='user-activate'),
+    path('logout-servive/', LogoutView.as_view(), name='logout'),
+    path('me/', MeView.as_view(), name='me'),
+
 ]
