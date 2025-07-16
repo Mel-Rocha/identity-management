@@ -5,7 +5,6 @@ from datetime import timedelta
 import dj_database_url
 from decouple import config, Csv
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = config("DEBUG", cast=bool, default=False)
 SECRET_KEY = config('SECRET_KEY')
@@ -30,7 +29,6 @@ REDIS_DB = config('REDIS_DB')
 
 # BEAT
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
-
 
 # Celery
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
@@ -68,7 +66,6 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-
 LOCAL_APPS = [
     'apps.users',  # app de usuários
     'apps.core',  # core da aplicação
@@ -88,9 +85,10 @@ THIRD_APPS = [
     'rest_framework_simplejwt',  # auth jwt
     'django_celery_results',  # resultados do celery
     'django_celery_beat',  # agendamento de tarefas
-    'rest_framework', # api rest
+    'rest_framework',  # api rest
+    'rest_framework_simplejwt.token_blacklist',  # blacklist de tokens
     'drf_api_logger',  # log de api
-    'corsheaders', # cors
+    'corsheaders',  # cors
     'drf_yasg',  # swagger
 ]
 
@@ -150,10 +148,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+if DEBUG:
+    # Configuração para o swagger funcionar via ngrok
+    # Permite que o Django use o cabeçalho X-Forwarded-Host como host confiável
+    USE_X_FORWARDED_HOST = True
+
+    # Informa ao Django que deve considerar X-Forwarded-Proto como HTTPS
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 DATABASES = {
     'default': dj_database_url.parse(config('DATABASE_URL'))
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -197,10 +202,10 @@ REDOC_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
 
     'ALGORITHM': 'HS256',
@@ -223,11 +228,7 @@ SIMPLE_JWT = {
 
     'JTI_CLAIM': 'jti',
 
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(days=1),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-
 
 # Logs
 DRF_API_LOGGER_DATABASE = True

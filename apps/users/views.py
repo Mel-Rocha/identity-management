@@ -10,6 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.core.logs import logger
@@ -20,7 +21,7 @@ from apps.users.serializers import (
     UserRetrieveSerializer,
     UserUpdateSerializer,
     UserInactivateSerializer,
-    UserActivateSerializer
+    UserActivateSerializer, LogoutSerializer, UserSerializer
 )
 from apps.users.models import User
 from apps.users.tasks import task_send_password_reset_email
@@ -236,3 +237,54 @@ class RecoverPassword(APIView):
             {"message": "Caso o email esteja registrado, as instruções foram enviadas."},
             status=status.HTTP_200_OK,
         )
+
+class LogoutView(APIView):
+    """
+    - Objetivo:
+        Invalidar o refresh token do usuário, realizando logout seguro.
+
+    - Permissões:
+        Usuários autenticados (todos os perfis de usuários).
+
+    - Retorno:
+        JSON (205 Reset Content ou 400 Bad Request)
+    """
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=LogoutSerializer,
+        responses={
+            205: openapi.Response("Logout realizado com sucesso."),
+            400: openapi.Response("Erro de validação ou token inválido."),
+        },
+    )
+
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response({"detail": "Refresh token ausente."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # ← aqui é onde ele vai para a blacklist
+            return Response({"detail": "Logout realizado com sucesso."}, status=status.HTTP_205_RESET_CONTENT)
+        except TokenError as e:
+            return Response({"detail": "Token inválido ou expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeView(APIView):
+    """
+    - Objetivo:
+        Retornar os dados do usuário autenticado.
+
+    - Permissões:
+        Usuários autenticados (todos os perfis de usuários).
+
+    - Retorno:
+        JSON (200 OK)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
