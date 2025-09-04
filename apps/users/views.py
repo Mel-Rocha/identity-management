@@ -25,6 +25,7 @@ from apps.users.serializers import (
 )
 from apps.users.models import User
 from apps.users.tasks import task_send_password_reset_email
+from apps.users.utils import get_target_user
 
 
 class ListUsers(ListAPIView):
@@ -130,7 +131,6 @@ class UpdateUser(APIView):
 
     @swagger_auto_schema(request_body=UserUpdateSerializer)
     def put(self, request, *args, **kwargs):
-        logged_user = request.user
         id_from_body = request.data.get('id')  # id opcional vindo do body
 
         # ==============================================================
@@ -139,17 +139,7 @@ class UpdateUser(APIView):
         # Para mitigar, apenas superusers podem usar o id passado.
         # ==============================================================
 
-        # Determina o usuário alvo
-        if logged_user.is_superuser and id_from_body:
-            # Superuser pode atualizar outro usuário
-            try:
-                target_user = User.objects.get(id=id_from_body)
-            except User.DoesNotExist:
-                return Response({"detail": "Usuário não encontrado."}, status=404)
-        else:
-            # Usuário comum, ou superuser sem id → atualiza a si mesmo
-            target_user = logged_user
-            id_from_body = logged_user.id  # força o id para proteger contra IDOR
+        target_user = get_target_user(request.user, id=id_from_body)
 
         # Cria o serializer passando o usuário alvo como instance
         serializer = UserUpdateSerializer(
@@ -170,13 +160,21 @@ class InactivateUser(APIView):
     """
     View for inactivating a user.
     :permission_classes: Only authenticated staff or admin users can access this view.
-    :param id: User's ID (required).
     """
-    @staticmethod
-    def delete(request, id, *args, **kwargs):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=UserInactivateSerializer)
+    def delete(self, request, *args, **kwargs):
+        # Lê o id opcional do body
+        id_from_body = request.data.get('id')
+
+        # Determina o usuário alvo usando função utilitária
+        target_user = get_target_user(request.user, id=id_from_body)
+
+        # Cria o serializer para validação
         serializer = UserInactivateSerializer(
             data={},
-            context={'id': id, 'request': request}
+            context={'user': target_user, 'request': request}
         )
 
         if serializer.is_valid():
@@ -184,7 +182,9 @@ class InactivateUser(APIView):
             user.is_active = False
             user.save()
             return Response(
-                {'message': 'User sucessfully inactivated!'}, status=status.HTTP_204_NO_CONTENT)
+                {'message': 'User successfully inactivated!'},
+                status=status.HTTP_204_NO_CONTENT
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

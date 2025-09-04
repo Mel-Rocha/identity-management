@@ -112,18 +112,14 @@ class UserInactivateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def validate(self, attrs):
-        # Recupera o id do contexto
-        id = self.context.get('id')
-        try:
-            user = User.objects.get(id=id)
-        except ObjectDoesNotExist:
+        # Recupera o usuário alvo do contexto
+        user = self.context.get('user')
+        if not user:
             raise serializers.ValidationError({'detail': ['User not found']})
 
         if not user.is_active:
-            raise serializers.ValidationError(
-                {'detail': ['User already inactivated']})
+            raise serializers.ValidationError({'detail': ['User already inactivated']})
 
-        # Adiciona o usuário validado aos atributos
         attrs['user'] = user
         return attrs
 

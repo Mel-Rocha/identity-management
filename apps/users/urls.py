@@ -25,9 +25,10 @@ urlpatterns = [
         RecoverPassword.as_view(),
         name='recover_password'),
     path(
-        'user-inactivate-service/<str:id>/',
+        'user-inactivate-service/',
         InactivateUser.as_view(),
-        name='user-inactivate'),
+        name='user-inactivate'
+    ),
     path(
         'user-activate-service/<str:id>/',
         ActivateUser.as_view(),
