@@ -130,7 +130,7 @@ class UpdateUser(APIView):
 
     @swagger_auto_schema(request_body=UserUpdateSerializer)
     def put(self, request, id, *args, **kwargs):
-        user = request.user
+        logged_user = request.user
 
         # ==============================================================
         # ATENÇÃO: risco de IDOR (Insecure Direct Object Reference) se
@@ -138,33 +138,35 @@ class UpdateUser(APIView):
         # Para mitigar, apenas superusers podem usar o id passado.
         # ==============================================================
 
-        # Se for superuser, usa o id passado
-        if user.is_superuser:
+        # Determina o usuário alvo
+        if logged_user.is_superuser:
+            # Superuser pode editar qualquer usuário passando o id
             if id:
                 try:
-                    user = User.objects.get(id=id)
+                    target_user = User.objects.get(id=id)
                 except User.DoesNotExist:
                     return Response(
                         {"detail": "Usuário não encontrado."},
                         status=status.HTTP_404_NOT_FOUND
                     )
-        # Caso contrário, ignora o id passado e usa o usuário logado
+            else:
+                # Sem id, assume que o superuser quer atualizar a si mesmo
+                target_user = logged_user
         else:
-            # Protege contra IDOR: usuários comuns não podem alterar outros usuários
-            id = user.id  # força que só pode alterar a própria conta
+            # Usuário comum: só pode alterar a própria conta
+            target_user = logged_user
+            id = logged_user.id  # força o id para proteger contra IDOR
 
+        # Cria o serializer passando o usuário alvo como instance
         serializer = UserUpdateSerializer(
+            instance=target_user,  # <-- usuário que será atualizado
             data=request.data,
-            context={'id': id, 'request': request}
+            context={'id': target_user.id, 'request': request},
+            partial=True  # permite enviar apenas campos que deseja atualizar
         )
 
         if serializer.is_valid():
-            user = serializer.validated_data['user']
-            # Atualiza os campos recebidos
-            for field, value in serializer.validated_data.items():
-                if field != 'user':
-                    setattr(user, field, value)
-            user.save()
+            user = serializer.save()  # atualiza os campos via serializer
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

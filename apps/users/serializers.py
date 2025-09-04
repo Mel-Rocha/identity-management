@@ -66,20 +66,41 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name']
-        read_only_fields = ['id']
+        fields = [
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'language',
+            'timezone',
+            'currency',
+            'country',
+            'organization',
+            'address',
+            'state',
+            'zip_code',
+            'phone_number',
+        ]
+
+    def validate_email(self, value):
+        user_id = self.context.get('id')
+        if User.objects.exclude(id=user_id).filter(email=value).exists():
+            raise serializers.ValidationError("Usuário com este email já existe.")
+        return value
 
     def validate(self, attrs):
+        # Recupera o usuário alvo pelo id passado no contexto
         id = self.context.get('id')
         try:
             user = User.objects.get(id=id)
         except ObjectDoesNotExist:
             raise serializers.ValidationError({'detail': 'User not found'})
 
+        # Garante que o usuário está ativo
         if not user.is_active:
-            raise serializers.ValidationError(
-                {'detail': 'This user is not activated'})
+            raise serializers.ValidationError({'detail': 'This user is not activated'})
 
+        # Adiciona o usuário ao contexto validado para ser usado na view
         attrs['user'] = user
         return attrs
 
