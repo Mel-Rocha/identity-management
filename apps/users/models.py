@@ -7,10 +7,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group, Permission
 
-# import json
-# import requests
-# from apps.email_service.views import send_mail
-# from apps.core.load_env import EMAIL_TO
+from apps.users.choices import LanguageChoices, TimezoneChoices, CurrencyChoices
 
 
 class User(AbstractUser):
@@ -44,6 +41,22 @@ class User(AbstractUser):
         blank=True,
         help_text='Specific permissions for this user.',
         verbose_name='Permissões de usuário',
+    )
+
+    language = models.CharField(
+        max_length=5,
+        choices=LanguageChoices.choices,
+        default=LanguageChoices.ENGLISH,
+    )
+    timezone = models.CharField(
+        max_length=20,
+        choices=TimezoneChoices.choices,
+        default=TimezoneChoices.UTC,
+    )
+    currency = models.CharField(
+        max_length=5,
+        choices=CurrencyChoices.choices,
+        default=CurrencyChoices.USD,
     )
 
     USERNAME_FIELD = 'email'
