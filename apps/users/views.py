@@ -102,12 +102,7 @@ class LoginView(APIView):
 
 class SignUpView(APIView):
     """
-    View for user registration.
-    :permission_classes: Allow any user (unauthenticated) to access this view.
-    :param email: User's email (required).
-    :param password: User's password (required).
-    :param first_name: User's first name (optional).
-    :param last_name: User's last name (optional).
+    Registro de usuários.
     """
     permission_classes = [AllowAny]
 

@@ -10,43 +10,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id',
             'email',
-            'first_name',
-            'last_name',
             'password',
-            'is_staff',
-            'language',
-            'timezone',
-            'currency',
-            'country',
-            'organization',
-            'address',
-            'state',
-            'zip_code',
-            'phone_number',
+            'username',
         ]
-        read_only_fields = ['id']
         extra_kwargs = {
             'email': {'required': True},
-            'username': {'required': False, 'allow_blank': True},
+            'username': {'required': True},
             'password': {'write_only': True, 'required': True},
-            'is_staff': {'default': False, 'required': False},
-            'language': {'required': False},
-            'timezone': {'required': False},
-            'currency': {'required': False},
-            'country': {'required': False},
-            'organization': {'required': False},
-            'address': {'required': False},
-            'state': {'required': False},
-            'zip_code': {'required': False},
-            'phone_number': {'required': False},
         }
 
     def create(self, validated_data):
-        # Garante que o username seja sempre o email
-        if not validated_data.get('username'):
-            validated_data['username'] = validated_data['email']
 
         # Extrai a senha e valida força dela
         password = validated_data.pop('password')
