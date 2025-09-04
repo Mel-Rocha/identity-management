@@ -58,10 +58,12 @@ class RetrieveUser(APIView):
 
 class LoginView(APIView):
     """
-    View for user login.
-    :permission_classes: Allow any user (unauthenticated) to access this view.
-    :param email: User's email (required).
-    :param password: User's password (required).
+    View para login de usuário.
+
+    :permission_classes: Permite qualquer usuário (não autenticado) acessar esta view.
+    
+    :param email: E-mail do usuário (obrigatório).
+    :param password: Senha do usuário (obrigatória).
     """
     permission_classes = [AllowAny]
 
