@@ -130,6 +130,29 @@ class UpdateUser(APIView):
 
     @swagger_auto_schema(request_body=UserUpdateSerializer)
     def put(self, request, id, *args, **kwargs):
+        user = request.user
+
+        # ==============================================================
+        # ATENÇÃO: risco de IDOR (Insecure Direct Object Reference) se
+        # permitirmos que usuários comuns passem o 'id' de outro usuário.
+        # Para mitigar, apenas superusers podem usar o id passado.
+        # ==============================================================
+
+        # Se for superuser, usa o id passado
+        if user.is_superuser:
+            if id:
+                try:
+                    user = User.objects.get(id=id)
+                except User.DoesNotExist:
+                    return Response(
+                        {"detail": "Usuário não encontrado."},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+        # Caso contrário, ignora o id passado e usa o usuário logado
+        else:
+            # Protege contra IDOR: usuários comuns não podem alterar outros usuários
+            id = user.id  # força que só pode alterar a própria conta
+
         serializer = UserUpdateSerializer(
             data=request.data,
             context={'id': id, 'request': request}
@@ -141,7 +164,6 @@ class UpdateUser(APIView):
             for field, value in serializer.validated_data.items():
                 if field != 'user':
                     setattr(user, field, value)
-            user.username = user.email  # mantling the user creation username logic
             user.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
