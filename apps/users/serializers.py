@@ -133,7 +133,7 @@ class UserActivateSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = ['id', 'password', 'last_login', 'is_active', 'date_joined']
 
 
 class LogoutSerializer(serializers.Serializer):

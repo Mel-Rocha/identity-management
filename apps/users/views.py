@@ -61,7 +61,7 @@ class LoginView(APIView):
     View para login de usuário.
 
     :permission_classes: Permite qualquer usuário (não autenticado) acessar esta view.
-    
+
     :param email: E-mail do usuário (obrigatório).
     :param password: Senha do usuário (obrigatória).
     """
