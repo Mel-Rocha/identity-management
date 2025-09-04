@@ -5,9 +5,9 @@ from apps.users.models import User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    # api request can create only staff and common users - to create admin need to use django admin
+    # in this implemantation username always will be email
     class Meta:
-        # api request can create only staff and common users - to create admin need to use django admin
-        # in this implemantation username always will be email
         model = User
         fields = [
             'id',
@@ -15,26 +15,48 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'password',
-            'is_staff']
+            'is_staff',
+            'language',
+            'timezone',
+            'currency',
+            'country',
+            'organization',
+            'address',
+            'state',
+            'zip_code',
+            'phone_number',
+        ]
         read_only_fields = ['id']
         extra_kwargs = {
             'email': {'required': True},
             'username': {'required': False, 'allow_blank': True},
             'password': {'write_only': True, 'required': True},
             'is_staff': {'default': False, 'required': False},
+            'language': {'required': False},
+            'timezone': {'required': False},
+            'currency': {'required': False},
+            'country': {'required': False},
+            'organization': {'required': False},
+            'address': {'required': False},
+            'state': {'required': False},
+            'zip_code': {'required': False},
+            'phone_number': {'required': False},
         }
 
     def create(self, validated_data):
-        if 'username' not in validated_data or not validated_data['username']:
-            validated_data['username'] = validated_data.get('email')
+        # Garante que o username seja sempre o email
+        if not validated_data.get('username'):
+            validated_data['username'] = validated_data['email']
 
+        # Extrai a senha e valida força dela
         password = validated_data.pop('password')
         user = User(**validated_data)
+
         error = user.check_password_strength(password=password)
         if error:
             raise serializers.ValidationError({'password': error})
 
-        user.set_password(password)  # encrypted password
+        user.set_password(password)  # salva senha de forma criptografada
         user.save()
         return user
 
