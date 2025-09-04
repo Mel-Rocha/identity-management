@@ -126,11 +126,12 @@ class UpdateUser(APIView):
     :param first_name: User's first name (optional).
     :param last_name: User's last name (optional).
     """
-    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(request_body=UserUpdateSerializer)
-    def put(self, request, id, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         logged_user = request.user
+        id_from_body = request.data.get('id')  # id opcional vindo do body
 
         # ==============================================================
         # ATENÇÃO: risco de IDOR (Insecure Direct Object Reference) se
@@ -139,34 +140,27 @@ class UpdateUser(APIView):
         # ==============================================================
 
         # Determina o usuário alvo
-        if logged_user.is_superuser:
-            # Superuser pode editar qualquer usuário passando o id
-            if id:
-                try:
-                    target_user = User.objects.get(id=id)
-                except User.DoesNotExist:
-                    return Response(
-                        {"detail": "Usuário não encontrado."},
-                        status=status.HTTP_404_NOT_FOUND
-                    )
-            else:
-                # Sem id, assume que o superuser quer atualizar a si mesmo
-                target_user = logged_user
+        if logged_user.is_superuser and id_from_body:
+            # Superuser pode atualizar outro usuário
+            try:
+                target_user = User.objects.get(id=id_from_body)
+            except User.DoesNotExist:
+                return Response({"detail": "Usuário não encontrado."}, status=404)
         else:
-            # Usuário comum: só pode alterar a própria conta
+            # Usuário comum, ou superuser sem id → atualiza a si mesmo
             target_user = logged_user
-            id = logged_user.id  # força o id para proteger contra IDOR
+            id_from_body = logged_user.id  # força o id para proteger contra IDOR
 
         # Cria o serializer passando o usuário alvo como instance
         serializer = UserUpdateSerializer(
-            instance=target_user,  # <-- usuário que será atualizado
+            instance=target_user,
             data=request.data,
             context={'id': target_user.id, 'request': request},
-            partial=True  # permite enviar apenas campos que deseja atualizar
+            partial=True
         )
 
         if serializer.is_valid():
-            user = serializer.save()  # atualiza os campos via serializer
+            user = serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -17,7 +17,7 @@ urlpatterns = [
         ListUsers.as_view(),
         name='users-list'),
     path(
-        'user-update-service/<str:id>/',
+        'user-update-service/',
         UpdateUser.as_view(),
         name='user-update'),
     path(
