@@ -17,3 +17,9 @@ class CurrencyChoices(models.TextChoices):
     USD = "USD", "US Dollar"
     EUR = "EUR", "Euro"
     BRL = "BRL", "Brazilian Real"
+
+
+class CountryChoices(models.TextChoices):
+    BRAZIL = 'BR', 'Brazil'
+    USA = 'US', 'United States'
+    CANADA = 'CA', 'Canada'

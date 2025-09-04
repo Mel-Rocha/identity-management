@@ -7,7 +7,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group, Permission
 
-from apps.users.choices import LanguageChoices, TimezoneChoices, CurrencyChoices
+from apps.users.choices import LanguageChoices, TimezoneChoices, CurrencyChoices, CountryChoices
 
 
 class User(AbstractUser):
@@ -57,6 +57,52 @@ class User(AbstractUser):
         max_length=5,
         choices=CurrencyChoices.choices,
         default=CurrencyChoices.USD,
+    )
+
+    country = models.CharField(
+        max_length=2,
+        choices=CountryChoices.choices,
+        default=CountryChoices.BRAZIL,
+        verbose_name='País'
+    )
+    organization = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='Organização',
+        help_text='Nome da empresa ou instituição do usuário.'
+    )
+
+    address = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Endereço',
+        help_text='Endereço completo do usuário (rua, número, complemento).'
+    )
+
+    state = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Estado',
+        help_text='Estado ou província do usuário.'
+    )
+
+    zip_code = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='CEP',
+        help_text='Código postal do usuário.',
+    )
+
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='Telefone',
+        help_text='Número de telefone do usuário.',
     )
 
     USERNAME_FIELD = 'email'
