@@ -38,7 +38,7 @@ chmod +x dev_helpers/scripts/*
 
 ### Docker 🐳
 ```bash
-docker compose docker-compose.yml up --build
+docker compose up --build
 ```
 - Acesse a aplicação em `http://0.0.0.0:8000/`
 

@@ -1,7 +1,8 @@
 from django.urls import path
 
 from apps.users.views import (LoginView, ListUsers, SignUpView,
-                              RecoverPassword, UpdateUser, InactivateUser, ActivateUser, LogoutView, MeView)
+                              RecoverPassword, UpdateUser, InactivateUser,
+                              ActivateUser, LogoutView, MeView, ChoicesListView)
 
 urlpatterns = [
     path(
@@ -17,7 +18,7 @@ urlpatterns = [
         ListUsers.as_view(),
         name='users-list'),
     path(
-        'user-update-service/<str:id>/',
+        'user-update-service/',
         UpdateUser.as_view(),
         name='user-update'),
     path(
@@ -25,14 +26,17 @@ urlpatterns = [
         RecoverPassword.as_view(),
         name='recover_password'),
     path(
-        'user-inactivate-service/<str:id>/',
+        'user-inactivate-service/',
         InactivateUser.as_view(),
-        name='user-inactivate'),
+        name='user-inactivate'
+    ),
     path(
         'user-activate-service/<str:id>/',
         ActivateUser.as_view(),
         name='user-activate'),
     path('logout-servive/', LogoutView.as_view(), name='logout'),
     path('me/', MeView.as_view(), name='me'),
+    path('choices/', ChoicesListView.as_view(),
+         name='choices-list'),
 
 ]

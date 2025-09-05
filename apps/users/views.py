@@ -25,6 +25,8 @@ from apps.users.serializers import (
 )
 from apps.users.models import User
 from apps.users.tasks import task_send_password_reset_email
+from apps.users.utils import get_target_user
+from apps.users.choices import LanguageChoices, CountryChoices, CurrencyChoices, TimezoneChoices
 
 
 class ListUsers(ListAPIView):
@@ -58,10 +60,12 @@ class RetrieveUser(APIView):
 
 class LoginView(APIView):
     """
-    View for user login.
-    :permission_classes: Allow any user (unauthenticated) to access this view.
-    :param email: User's email (required).
-    :param password: User's password (required).
+    View para login de usuário.
+
+    :permission_classes: Permite qualquer usuário (não autenticado) acessar esta view.
+
+    :param email: E-mail do usuário (obrigatório).
+    :param password: Senha do usuário (obrigatória).
     """
     permission_classes = [AllowAny]
 
@@ -102,12 +106,7 @@ class LoginView(APIView):
 
 class SignUpView(APIView):
     """
-    View for user registration.
-    :permission_classes: Allow any user (unauthenticated) to access this view.
-    :param email: User's email (required).
-    :param password: User's password (required).
-    :param first_name: User's first name (optional).
-    :param last_name: User's last name (optional).
+    Registro de usuários.
     """
     permission_classes = [AllowAny]
 
@@ -129,23 +128,30 @@ class UpdateUser(APIView):
     :param first_name: User's first name (optional).
     :param last_name: User's last name (optional).
     """
-    permission_classes = [IsAuthenticated, IsStaffOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(request_body=UserUpdateSerializer)
-    def put(self, request, id, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
+        id_from_body = request.data.get('id')  # id opcional vindo do body
+
+        # ==============================================================
+        # ATENÇÃO: risco de IDOR (Insecure Direct Object Reference) se
+        # permitirmos que usuários comuns passem o 'id' de outro usuário.
+        # Para mitigar, apenas superusers podem usar o id passado.
+        # ==============================================================
+
+        target_user = get_target_user(request.user, id=id_from_body)
+
+        # Cria o serializer passando o usuário alvo como instance
         serializer = UserUpdateSerializer(
+            instance=target_user,
             data=request.data,
-            context={'id': id, 'request': request}
+            context={'id': target_user.id, 'request': request},
+            partial=True
         )
 
         if serializer.is_valid():
-            user = serializer.validated_data['user']
-            # Atualiza os campos recebidos
-            for field, value in serializer.validated_data.items():
-                if field != 'user':
-                    setattr(user, field, value)
-            user.username = user.email  # mantling the user creation username logic
-            user.save()
+            user = serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -155,13 +161,21 @@ class InactivateUser(APIView):
     """
     View for inactivating a user.
     :permission_classes: Only authenticated staff or admin users can access this view.
-    :param id: User's ID (required).
     """
-    @staticmethod
-    def delete(request, id, *args, **kwargs):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=UserInactivateSerializer)
+    def delete(self, request, *args, **kwargs):
+        # Lê o id opcional do body
+        id_from_body = request.data.get('id')
+
+        # Determina o usuário alvo usando função utilitária
+        target_user = get_target_user(request.user, id=id_from_body)
+
+        # Cria o serializer para validação
         serializer = UserInactivateSerializer(
             data={},
-            context={'id': id, 'request': request}
+            context={'user': target_user, 'request': request}
         )
 
         if serializer.is_valid():
@@ -169,7 +183,9 @@ class InactivateUser(APIView):
             user.is_active = False
             user.save()
             return Response(
-                {'message': 'User sucessfully inactivated!'}, status=status.HTTP_204_NO_CONTENT)
+                {'message': 'User successfully inactivated!'},
+                status=status.HTTP_204_NO_CONTENT
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -288,3 +304,40 @@ class MeView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ChoicesListView(APIView):
+    """
+    Endpoint para listar opções de enums (choices).
+    Query param: type=[language|country|currency|timezone]
+    Default: language
+    """
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'type',
+                openapi.IN_QUERY,
+                description="Tipo de choices: language, country, currency, timezone",
+                type=openapi.TYPE_STRING,
+                enum=['language', 'country', 'currency', 'timezone'],
+                required=False,
+                default='language'
+            )
+        ]
+    )
+    def get(self, request):
+        choice_type = request.query_params.get('type', 'language').lower()
+        choices_map = {
+            'language': LanguageChoices,
+            'country': CountryChoices,
+            'currency': CurrencyChoices,
+            'timezone': TimezoneChoices,
+        }
+        choices_class = choices_map.get(choice_type, LanguageChoices)
+        data = [
+            {'value': c.value, 'label': c.label}
+            for c in choices_class
+        ]
+        return Response(data, status=status.HTTP_200_OK)
