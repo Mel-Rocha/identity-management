@@ -14,7 +14,8 @@ def test_signup_success():
         "email": "newuser@example.com",
         "password": "@Newpassword123",
         "first_name": "New",
-        "last_name": "User"
+        "last_name": "User",
+        "username": "newuser"
     }
 
     response = client.post(url, data, format='json')
@@ -32,7 +33,8 @@ def test_signup_weak_password():
         "email": "newuser@example.com",
         "password": "weak",
         "first_name": "New",
-        "last_name": "User"
+        "last_name": "User",
+        "username": "newuser"
     }
 
     response = client.post(url, data, format='json')
@@ -50,7 +52,8 @@ def test_signup_missing_required_field():
         "email": "newuser@example.com",
         "password": "@Newpassword123",
         # "first_name": "New",  # Campo obrigatório ausente
-        "last_name": "User"
+        "last_name": "User",
+        "username": "newuser"
     }
 
     response = client.post(url, data, format='json')
