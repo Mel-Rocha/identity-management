@@ -1,4 +1,3 @@
-import uuid
 from django.contrib.auth import get_user_model
 import pytest
 from rest_framework.test import APIClient
