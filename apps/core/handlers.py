@@ -14,9 +14,19 @@ def custom_exception_handler(exc, context):
 
     # Se DRF conseguiu lidar com a exceção (ex: APIException)
     if response is not None:
+        data = response.data
+        if "detail" in data:
+            # Erro global (ex: PermissionDenied)
+            message = data["detail"]
+            code = getattr(exc, 'default_code', 'error')
+        else:
+            # Erro de campo (ex: validação de serializer)
+            message = data
+            code = getattr(exc, 'default_code', 'invalid')
+
         response.data = {
-            "message": response.data.get("detail", "Erro ao processar requisição"),
-            "code": getattr(exc, 'default_code', 'error'),
+            "message": message,
+            "code": code,
             "status": response.status_code,
         }
         return response

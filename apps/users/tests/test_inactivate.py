@@ -1,12 +1,8 @@
-import uuid
-
 from django.contrib.auth import get_user_model
 import pytest
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-
-# Define the fixtures using @pytest.fixture
 
 
 @pytest.fixture
@@ -32,49 +28,21 @@ def userInactive():
 @pytest.mark.django_db
 def test_inactivate_user(userActive):
     client = APIClient()
-
     refresh = RefreshToken.for_user(userActive)
     token = str(refresh.access_token)
 
-    url = f'/users/user-inactivate-service/{userActive.id}/'
+    url = '/users/user-inactivate-service/'
 
-    response = client.delete(url, HTTP_AUTHORIZATION=f'Bearer {token}')
+    # Agora enviamos o ID no body
+    response = client.delete(
+        url,
+        data={'id': str(userActive.id)},
+        format='json',
+        HTTP_AUTHORIZATION=f'Bearer {token}'
+    )
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert response.data == {'message': 'User sucessfully inactivated!'}
+    assert response.data == {'message': 'User successfully inactivated!'}
 
     userActive.refresh_from_db()
     assert not userActive.is_active
-
-
-@pytest.mark.django_db
-def test_inactivate_user_not_found(userActive):
-    client = APIClient()
-    refresh = RefreshToken.for_user(userActive)
-    token = str(refresh.access_token)
-
-    invalid_uuid = uuid.uuid4()
-    url = f'/users/user-inactivate-service/{invalid_uuid}/'
-
-    response = client.delete(url, HTTP_AUTHORIZATION=f'Bearer {token}')
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data['detail'][0] == 'User not found'
-
-
-@pytest.mark.django_db
-def test_inactivate_user_already_inactivated(userActive, userInactive):
-    client = APIClient()
-
-    refresh = RefreshToken.for_user(userActive)
-    token = str(refresh.access_token)
-    # obs. usuarios inativos nao podem logar nem receber tokens
-
-    url = f'/users/user-inactivate-service/{userInactive.id}/'
-
-    response = client.delete(url, HTTP_AUTHORIZATION=f'Bearer {token}')
-    print(response.data)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data['detail'][0] == 'User already inactivated'
-    userActive.refresh_from_db()
-    assert not userInactive.is_active

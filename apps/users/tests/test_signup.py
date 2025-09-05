@@ -14,7 +14,8 @@ def test_signup_success():
         "email": "newuser@example.com",
         "password": "@Newpassword123",
         "first_name": "New",
-        "last_name": "User"
+        "last_name": "User",
+        "username": "newuser"
     }
 
     response = client.post(url, data, format='json')
@@ -32,14 +33,14 @@ def test_signup_weak_password():
         "email": "newuser@example.com",
         "password": "weak",
         "first_name": "New",
-        "last_name": "User"
+        "last_name": "User",
+        "username": "newuser"
     }
 
     response = client.post(url, data, format='json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'password' in response.data
-
+    assert 'Senha' in response.data['message']['password']
 
 @pytest.mark.django_db
 def test_signup_missing_required_field():
@@ -47,13 +48,14 @@ def test_signup_missing_required_field():
     url = reverse('signup')
 
     data = {
-        "email": "newuser@example.com",
+        #"email": "newuser@example.com", # Campo obrigatório ausente
         "password": "@Newpassword123",
-        # "first_name": "New",  # Campo obrigatório ausente
-        "last_name": "User"
+        "first_name": "New",
+        "last_name": "User",
+        "username": "newuser"
     }
 
     response = client.post(url, data, format='json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'first_name' in response.data
+    assert 'email' in response.data
