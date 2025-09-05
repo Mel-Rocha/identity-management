@@ -26,6 +26,7 @@ from apps.users.serializers import (
 from apps.users.models import User
 from apps.users.tasks import task_send_password_reset_email
 from apps.users.utils import get_target_user
+from apps.users.choices import LanguageChoices, CountryChoices, CurrencyChoices, TimezoneChoices
 
 
 class ListUsers(ListAPIView):
@@ -303,3 +304,40 @@ class MeView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ChoicesListView(APIView):
+    """
+    Endpoint para listar opções de enums (choices).
+    Query param: type=[language|country|currency|timezone]
+    Default: language
+    """
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'type',
+                openapi.IN_QUERY,
+                description="Tipo de choices: language, country, currency, timezone",
+                type=openapi.TYPE_STRING,
+                enum=['language', 'country', 'currency', 'timezone'],
+                required=False,
+                default='language'
+            )
+        ]
+    )
+    def get(self, request):
+        choice_type = request.query_params.get('type', 'language').lower()
+        choices_map = {
+            'language': LanguageChoices,
+            'country': CountryChoices,
+            'currency': CurrencyChoices,
+            'timezone': TimezoneChoices,
+        }
+        choices_class = choices_map.get(choice_type, LanguageChoices)
+        data = [
+            {'value': c.value, 'label': c.label}
+            for c in choices_class
+        ]
+        return Response(data, status=status.HTTP_200_OK)
