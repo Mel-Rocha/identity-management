@@ -28,10 +28,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install coverage pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Export env vars
+      run: |
+        set -a
+        source .env
+        set +a
     - name: Test with coverage
       run: |
         coverage run -m pytest
         coverage report
-    - name: Test with pytest
-      run: |
-        pytest
